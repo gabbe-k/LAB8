@@ -46,7 +46,6 @@ def main():
         done = False
         observation = env.reset()
 
-
         while not done:
             #print("episode: ", i)
 
@@ -64,6 +63,8 @@ def main():
             #print(observation_.reshape(3,3))
 
             #print("reward: ", reward)
+
+            #print(score)
 
             score += reward
             agent.store_transition(observation, action, reward, observation_, int(done))

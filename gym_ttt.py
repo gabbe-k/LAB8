@@ -104,52 +104,49 @@ class TicTacToeEnv(gym.Env):
         play = self.action_to_play[action]
         illegal = False
 
-        if self.ttt.get_mark_at_position(play) != 0:
 
-            self.ill_counter += 1
+        ####BIG BUG SHOULDNT BE HERE
+        result = has_won(self.ttt, self.win_list)
 
-            if i >= 65:
-                self.ep_index -= 1
-
-                if self.ill_counter >= 20:
-                    self.ill_counter = 0
-                    #print("illegal move")
-
-                    return self.ttt.board.flatten(), -.1, True, {}
-                
-                return self.ttt.board.flatten(), -0.01, False, {}
-            else:
-                illegal = True
-
-        self.ttt.set_mark(self.action_to_play[action], self.curr_player)
-
-        reward = has_won(self.ttt, self.win_list)
-
-        if reward != 0:
+        if result != 0:
             self.ep_index = self.ep_len
             obs = self.ttt.board
+            reward = result
+            return obs.flatten(), reward, True, {}
+
+
+
+        if self.ttt.get_mark_at_position(play) != 0:
+            self.ttt.set_mark(self.random_move(), self.curr_player)
+            illegal = True
+        else: 
+            self.ttt.set_mark(self.action_to_play[action], self.curr_player)
+
+        result = has_won(self.ttt, self.win_list)
+
+        if result != 0:
+            self.ep_index = self.ep_len
+            obs = self.ttt.board
+            reward = result
+            return obs.flatten(), reward, True, {}
         else:
             self.ep_index += 1
             obs = self._next_observation()
             reward = has_won(self.ttt, self.win_list)
 
-        # game is over if someone won or if all moves have been played
-        done = self.ep_index == self.ep_len
-
         if illegal:
             reward = -0.5
 
-        return obs.flatten(), reward, done, {}
+        return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
 
-        plays = self.ttt.possible_moves()
-
-        # randomly choose a play
-        a,b = plays[np.random.randint(0, len(plays))]
-
-        self.ttt.set_mark([a,b], 1)
-
+        self.ttt.set_mark(self.random_move(), 1)
         return self.ttt.board
+    
+    def random_move(self):
+        plays = self.ttt.possible_moves()
+        a,b = plays[np.random.randint(0, len(plays))]
+        return [a,b]
 
         
