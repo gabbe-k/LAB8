@@ -130,8 +130,7 @@ class TicTacToeEnv(gym.Env):
             self.ep_index += 1
             obs = self._next_observation()
             reward = has_won(self.ttt, self.win_list)
-
-        return obs.flatten(), reward, False, {}
+            return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
         #self.ttt.set_mark(self.random_move(), 1)

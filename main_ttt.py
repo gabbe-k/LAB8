@@ -39,10 +39,10 @@ def main():
     n = 3 
     env = TicTacToeEnv(n = n)
 
-    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.003)
+    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001)
     scores, eps_history, losses = [], [], []
     n_games = 15000
-    debug = 2000
+    debug = 15000
     n_iter = 50
 
     for i in range(n_games):
@@ -70,6 +70,13 @@ def main():
                 print("action: ", action)
 
             observation_ , reward, done, info = env.step(action, i)
+
+            #if done:
+            #    print("done: ", done)
+            #    print(action)
+            #    print(reward)
+            #    print(observation.reshape(3,3))
+            #    print(observation_.reshape(3,3))
 
             if i >= debug:
                 print("observation_: ")

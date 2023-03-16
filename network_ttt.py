@@ -33,7 +33,7 @@ class DeepQNetwork(nn.Module):
         return actions
     
 class Agent():
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=3e-4, istraining=True):
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=3e-5, istraining=True):
         self.gamma = gamma
         self.epsilon = epsilon
         self.lr = lr
