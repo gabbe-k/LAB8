@@ -5,6 +5,7 @@ from gym_ttt import TicTacToeEnv
 import numpy as np
 import matplotlib.pyplot as plt
 import torch as t
+from mcts_ttt import MCTS
 
 def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
     fig = plt.figure()
@@ -38,29 +39,41 @@ def main():
     n = 3 
     env = TicTacToeEnv(n = n)
 
-    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001)
+    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.003)
     scores, eps_history, losses = [], [], []
-    n_games = 10000
+    n_games = 15000
+    debug = 2000
+    n_iter = 50
+
     for i in range(n_games):
         score = 0 
         done = False
         observation = env.reset()
 
+        if i % 1000 == 0:
+            n_iter += 50
+            print("n_iter: SUSSY BAKA", n_iter)
+            env.mcts = MCTS(p=1,n_iter=n_iter)
+
         while not done:
             #print("episode: ", i)
 
-            #print("observation:")
-            #print(observation.reshape(3,3))
-
+            if i >= debug:
+                print("observation:")
+                print(observation.reshape(3,3))
+                
             # discrete observation between 0 and 8
             action = agent.choose_action(observation)
 
-            #print("action: ", action)
+
+            if i >= debug:
+                print("action: ", action)
 
             observation_ , reward, done, info = env.step(action, i)
 
-            #print("observation_: ")
-            #print(observation_.reshape(3,3))
+            if i >= debug:
+                print("observation_: ")
+                print(observation_.reshape(3,3))
 
             #print("reward: ", reward)
 
@@ -86,7 +99,7 @@ def main():
         avg_score = np.mean(scores[-100:])
 
         if i % 500 == 0:
-            print('episode ', i, 'score %.2f' % score, 'average score %.2f' % avg_score, 'epsilon %.2f' % agent.epsilon, 'loss %.2f' % loss)
+            print('episode ', i, 'score %.2f' % score, 'average score %.2f' % avg_score, 'epsilon %.2f' % agent.epsilon, 'loss %.5f' % loss)
 
     x = [i+1 for i in range(n_games)]
     filename = 'moon_landing_fake.png'

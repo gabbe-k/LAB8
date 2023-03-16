@@ -15,28 +15,50 @@ win_list = create_win_list(n)
 acpdict = action_to_play_dict(n)
     
 
-def deepQVsMCTS(mctsagent, agent1,  size=(n,n), iter=1000):
+def deepQVsMCTS(mctsagent, agent1,  size=(n,n)):
   b = te.Board(size,n)
+
+  #moves = b.possible_moves()
+  #i = np.random.randint(len(moves))
+  #x,y = moves[i]
+
+  #b.set_mark([x,y], 1)
+
+  firstRound = True
 
   while has_won(b) == -1:
 
-    print(b)
 
-    move = mctsagent.search(b)
-    b.push(move)
+    if firstRound:
+      moves = b.possible_moves()
+      i = np.random.randint(len(moves))
+      x,y = moves[i]
+      b.set_mark([x,y], 1)
+      firstRound = False
+       
+    else:
+      print(b)
+      
+      move = mctsagent.search(b)
+      b.set_mark(move, 1)
 
-    print(b)
+      print("MCTS move:")
+      print(b) 
 
     if has_won(b) != -1:
+        print(b)
         return has_won(b)
     
     move_Q = agent1.choose_action(b.board.flatten())
 
     print("Deep Q move:", acpdict[move_Q])
-    b.push(acpdict[move_Q])
+    b.set_mark(acpdict[move_Q], 2)
 
     if has_won(b) != -1:
+        print(b)
         return has_won(b)
+
+  
      
 
 
@@ -50,9 +72,11 @@ if __name__ == '__main__':
                   n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001, istraining=False)
     agent.Q_eval = network
 
-    mcts = MCTS(2,n_iter=1000)
+    n_iter = 200
 
-    deepQVsMCTS(mcts, agent, size=(n,n), iter=1000)
+    mcts = MCTS(1,n_iter=n_iter)
+
+    print(deepQVsMCTS(mcts, agent, size=(n,n)))
 
 
 

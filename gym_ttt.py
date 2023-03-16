@@ -2,6 +2,7 @@ import gym
 from gym import spaces
 import tictactoe as te 
 import numpy as np 
+from mcts_ttt import MCTS
 
 def create_win_list(n):
     win_list = []
@@ -50,6 +51,10 @@ def action_to_play_dict(n):
     return d
 
 
+
+
+
+
 class TicTacToeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
@@ -81,7 +86,8 @@ class TicTacToeEnv(gym.Env):
         self.action_to_play = action_to_play_dict(n)
 
         self.ill_counter = 0
-            
+        
+        self.mcts = MCTS(p=1,n_iter=150)
 
     def reset(self, seed=None, options=None):
         # maybe we want to place a random opponent marker first? 
@@ -104,25 +110,16 @@ class TicTacToeEnv(gym.Env):
         play = self.action_to_play[action]
         illegal = False
 
+        if self.ttt.get_mark_at_position(play) != 0: illegal = True
 
-        ####BIG BUG SHOULDNT BE HERE
-        result = has_won(self.ttt, self.win_list)
-
-        if result != 0:
-            self.ep_index = self.ep_len
-            obs = self.ttt.board
-            reward = result
-            return obs.flatten(), reward, True, {}
-
-
-
-        if self.ttt.get_mark_at_position(play) != 0:
-            self.ttt.set_mark(self.random_move(), self.curr_player)
-            illegal = True
-        else: 
-            self.ttt.set_mark(self.action_to_play[action], self.curr_player)
+        self.ttt.set_mark(play, self.curr_player)
 
         result = has_won(self.ttt, self.win_list)
+
+        # Return immediately if illegal move
+        if illegal:
+            reward = -0.2
+            return self.ttt.board.flatten(), reward, True, {}
 
         if result != 0:
             self.ep_index = self.ep_len
@@ -134,14 +131,11 @@ class TicTacToeEnv(gym.Env):
             obs = self._next_observation()
             reward = has_won(self.ttt, self.win_list)
 
-        if illegal:
-            reward = -0.5
-
         return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
-
-        self.ttt.set_mark(self.random_move(), 1)
+        #self.ttt.set_mark(self.random_move(), 1)
+        self.ttt.set_mark(self.mcts.search(self.ttt), 1)
         return self.ttt.board
     
     def random_move(self):

@@ -192,13 +192,13 @@ def playGame(iter=3000, verbose=False):
     print(b)
     print("'row,col'")
     fst,snd = getplay()
-    b.push([snd,fst])
+    b.set_mark([snd,fst],2)
     if has_won(b) != -1:
       return has_won(b)
     print(b)
-    mcts = MCTS(2, n_iter=iter)
+    mcts = MCTS(1, n_iter=iter)
     move = mcts.search(b)
-    b.push(move)
+    b.set_mark(move,1)
 
   print("Winner:", has_won(b))  
   print(b)
@@ -229,7 +229,7 @@ def main():
   #predict a move
   b = te.Board((n,n),n)
   b.push([1,1])
-  mcts = MCTS(2, n_iter=1000)
+  mcts = MCTS(p=2, n_iter=1000)
   move = mcts.search(b)
   print(move)
 
