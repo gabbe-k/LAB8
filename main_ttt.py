@@ -6,8 +6,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch as t
 from mcts_ttt import MCTS
+from util_fun import *
 
-win_list = create_win_list(3)
+
+
+
+
 
 def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
     fig = plt.figure()
@@ -33,7 +37,6 @@ def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
     ax2.tick_params(axis='y', colors="C1")
 
     plt.savefig(filename)
-
 
 
 

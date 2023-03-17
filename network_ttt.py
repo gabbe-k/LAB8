@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import numpy as np 
+from util_fun import *
 
 
 
-print("lmao")
 
 class DeepQNetwork(nn.Module):
     def __init__(self, lr, input_dims, fc1_dims, fc2_dims, n_actions, dropout=False):
@@ -19,7 +19,6 @@ class DeepQNetwork(nn.Module):
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
-
         self.dropout = dropout
 
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
@@ -38,10 +37,15 @@ class DeepQNetwork(nn.Module):
             actions = self.fc3(layer2)
         return actions
     
+    
+    
+    
+    
 class Agent():
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, 
                  n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=5e-4, 
                  fc1_dims = 256, fc2_dims = 256, istraining=True):
+        
         self.gamma = gamma
         self.epsilon = epsilon
         self.lr = lr
@@ -57,6 +61,7 @@ class Agent():
                                    fc1_dims=fc1_dims, fc2_dims=fc2_dims, dropout=False)
         self.Q_target = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, 
                                      fc1_dims=fc1_dims, fc2_dims=fc2_dims, dropout=False)
+        
         self.state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
         self.new_state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
         self.action_memory = np.zeros(self.mem_size, dtype=np.int32)
@@ -169,6 +174,6 @@ class Agent():
 
         self.learn_step_counter += 1
 
-        return rloss#.detach().cpu().numpy().item()
+        return rloss
 
 
