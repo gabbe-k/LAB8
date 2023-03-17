@@ -36,24 +36,27 @@ def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
 
 def main():
 
+    n_iter = 200
     n = 3 
-    env = TicTacToeEnv(n = n)
+    env = TicTacToeEnv(n = n, n_iter = n_iter)
 
-    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001)
+    agent = Agent(gamma = 0.99, epsilon = 1, batch_size=512, n_actions=n*n, 
+                  eps_dec = 1e-4, eps_end=0.01, input_dims=[n*n], lr=0.001)
     scores, eps_history, losses = [], [], []
-    n_games = 15000
-    debug = 15000
-    n_iter = 50
+    n_games = 100000
+    debug = 100002
 
     for i in range(n_games):
         score = 0 
         done = False
         observation = env.reset()
 
-        if i % 1000 == 0:
-            n_iter += 50
+        if i % 2000 == 0:
+            n_iter += 100
             print("n_iter: SUSSY BAKA", n_iter)
-            env.mcts = MCTS(p=1,n_iter=n_iter)
+            #env.mcts = MCTS(p=1,n_iter=n_iter)
+            #Save the model
+            t.save(agent.Q_eval.state_dict(), f'ttt_model_MCTStrain09{i}.pt')
 
         while not done:
             #print("episode: ", i)
@@ -105,7 +108,7 @@ def main():
 
         avg_score = np.mean(scores[-100:])
 
-        if i % 500 == 0:
+        if i % 200 == 0:
             print('episode ', i, 'score %.2f' % score, 'average score %.2f' % avg_score, 'epsilon %.2f' % agent.epsilon, 'loss %.5f' % loss)
 
     x = [i+1 for i in range(n_games)]
@@ -114,9 +117,6 @@ def main():
 
     plot_learning_curve(x, scores, eps_history, filename)
     plot_learning_curve(x, losses, eps_history, filename2, ylabel="Loss")
-
-    #Save the model
-    t.save(agent.Q_eval.state_dict(), 'ttt_model.pt')
 
 
 if __name__ == '__main__':

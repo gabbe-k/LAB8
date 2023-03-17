@@ -19,21 +19,24 @@ class DeepQNetwork(nn.Module):
         self.fc1 = nn.Linear(*self.input_dims, self.fc1_dims)
         self.fc2 = nn.Linear(self.fc1_dims, self.fc2_dims)
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
+        self.dropout = nn.Dropout(0.2)
+
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
         self.loss = nn.MSELoss()
         self.device = t.device('cuda:0' if t.cuda.is_available() else 'cpu')
-        self.lru = nn.LeakyReLU()
+        self.lru = nn.Tanh()
         self.to(self.device)
 
     def forward(self, state):
         layer1 = self.lru(self.fc1(state))
         layer2 = self.lru(self.fc2(layer1))
+        #layer3 = self.dropout(layer2)
         actions = self.fc3(layer2)
 
         return actions
     
 class Agent():
-    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=3e-5, istraining=True):
+    def __init__(self, gamma, epsilon, lr, input_dims, batch_size, n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=5e-4, istraining=True):
         self.gamma = gamma
         self.epsilon = epsilon
         self.lr = lr
@@ -45,7 +48,7 @@ class Agent():
         self.eps_min = eps_end
         self.eps_dec = eps_dec
         self.mem_cntr = 0
-        self.Q_eval = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, fc1_dims=256, fc2_dims=256)
+        self.Q_eval = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, fc1_dims=128, fc2_dims=128)
         self.state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
         self.new_state_memory = np.zeros((self.mem_size, *input_dims), dtype=np.float32)
         self.action_memory = np.zeros(self.mem_size, dtype=np.int32)

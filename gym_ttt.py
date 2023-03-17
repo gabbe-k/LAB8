@@ -58,7 +58,7 @@ def action_to_play_dict(n):
 class TicTacToeEnv(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, n = 3):
+    def __init__(self, n = 3, n_iter = 150):
         super(TicTacToeEnv, self).__init__()
 
         self.size = n
@@ -87,7 +87,7 @@ class TicTacToeEnv(gym.Env):
 
         self.ill_counter = 0
         
-        self.mcts = MCTS(p=1,n_iter=150)
+        self.mcts = MCTS(p=1,n_iter=n_iter)
 
     def reset(self, seed=None, options=None):
         # maybe we want to place a random opponent marker first? 
@@ -133,8 +133,8 @@ class TicTacToeEnv(gym.Env):
             return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
-        #self.ttt.set_mark(self.random_move(), 1)
-        self.ttt.set_mark(self.mcts.search(self.ttt), 1)
+        self.ttt.set_mark(self.random_move(), 1)
+        #self.ttt.set_mark(self.mcts.search(self.ttt), 1)
         return self.ttt.board
     
     def random_move(self):

@@ -28,7 +28,8 @@ class DeepQNetwork(nn.Module):
     def forward(self, state):
         layer1 = self.lru(self.fc1(state))
         layer2 = self.lru(self.fc2(layer1))
-        actions = self.fc3(layer2)
+        layer3 = self.dropout(layer2)
+        actions = self.fc3(layer3)
 
         return actions
     

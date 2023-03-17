@@ -208,17 +208,19 @@ def randomGame(size=(n,n), iter=1000, verbose=False):
 
   while has_won(b) == -1:
 
-    moves = b.possible_moves()
-    i = np.random.randint(len(moves))
-    b.push(moves[i])
+    mcts = MCTS(1, n_iter=iter)
+
+    move = mcts.search(b)
+    b.push(move)
+
+    print(b)
 
     if has_won(b) != -1:
       return has_won(b)
     
-    mcts = MCTS(2, n_iter=iter)
-
-    move = mcts.search(b)
-    b.push(move)
+    moves = b.possible_moves()
+    i = np.random.randint(len(moves))
+    b.push(moves[i])
 
   return has_won(b)
 
@@ -236,5 +238,5 @@ def main():
 
 #main loop
 if __name__ == "__main__":
-  
+  print(randomGame(iter=1000))
   main()
