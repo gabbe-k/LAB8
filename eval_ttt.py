@@ -62,30 +62,24 @@ def deepQVsMCTS(mctsagent, agent1, size=(n,n), verbose=False):
     return res
 
 
-def MCTSvsdeepQ(mctsagent, agent1, size=(n,n), verbose=False):
+def deepQVsRANDOM(agent1, size=(n,n), verbose=False):
     b = te.Board(size,n)
-    b.turn = 2
-    firstRound = True
+    b.turn = 1
     res = -1
 
     while res == -1:
 
-        if firstRound:
-            moves = b.possible_moves()
-            i = np.random.randint(len(moves))
-            x,y = moves[i]
-            b.push([x,y])
-            firstRound = False
-        else:
-            move_Q = agent1.choose_action(b.board.flatten())
-            b.push(acpdict[move_Q])
+        moves = b.possible_moves()
+        i = np.random.randint(len(moves))
+        x,y = moves[i]
+        b.push([x,y])
 
         if has_won(b, win_list) != -1: 
             res = has_won(b, win_list)
             break
 
-        move = mctsagent.search(b)
-        b.push(move)
+        move_Q = agent1.choose_action(b.board.flatten())
+        b.push(acpdict[move_Q])
 
         if has_won(b, win_list) != -1: 
             res = has_won(b, win_list)
@@ -99,15 +93,18 @@ def MCTSvsdeepQ(mctsagent, agent1, size=(n,n), verbose=False):
 
 if __name__ == '__main__':
     #load Q-learned model
-    network = network_ttt.DeepQNetwork(lr = 0.001, input_dims = [n*n], fc1_dims= 128, fc2_dims = 128, n_actions = n*n)
-    network.load_state_dict(t.load('ttt_model_MCTStrain1034000.pt'))
+    network = network_ttt.DeepQNetwork(lr = 0.001, input_dims = [n*n], fc1_dims= 256, fc2_dims = 256, n_actions = n*n)
+    #network.load_state_dict(t.load('ttt_model_randomtrain_34000.pt'))
+    
+    #59% draw rate
+    network.load_state_dict(t.load('ttt_model_randomtrain_512fc_dropout0.536000.pt'))
     network.eval()
 
-    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, 
+    agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=512, 
                   n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001, istraining=False)
     agent.Q_eval = network
 
-    n_iter = 1000
+    n_iter = 150
 
     mcts = MCTS(1,n_iter=n_iter)
 
@@ -116,7 +113,7 @@ if __name__ == '__main__':
     draws = 0
     for i in range(100):
       outcome = deepQVsMCTS(mcts, agent, size=(n,n), verbose=False)
-      #outcome = MCTSvsdeepQ(mcts, agent, size=(n,n), verbose=True)
+      #outcome = deepQVsRANDOM(agent, size=(n,n), verbose=False)
       if outcome == 2:
           wins += 1
       elif outcome == 0:

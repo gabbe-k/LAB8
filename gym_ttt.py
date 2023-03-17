@@ -37,7 +37,22 @@ def has_won(board,win_list):
     elif all(elems == 2): return 1 
 
   if np.count_nonzero(b_flat) == b_flat.size:
-    return 0.5 
+    return 0.5
+
+  return 0
+
+def has_won_np(board,win_list):
+
+  b_flat = board.flatten()
+
+  for w in win_list:
+    elems = b_flat[w]
+
+    if all(elems == 1): return -1
+    elif all(elems == 2): return 1 
+
+  if np.count_nonzero(b_flat) == b_flat.size:
+    return 0.5
 
   return 0
 
@@ -67,9 +82,6 @@ class TicTacToeEnv(gym.Env):
         # 9 placements on the board
         self.action_space = spaces.Discrete(n*n)
 
-        # three markers (including unmarked), nine spaces
-        #self.observation_space = spaces.MultiBinary(n*n*3) 
-
         self.curr_player = 2
 
         self.reward_range = (-1, 1)
@@ -85,8 +97,6 @@ class TicTacToeEnv(gym.Env):
         # convert 0 to 8 to (0,0) to (2,2) (3x3 board)
         self.action_to_play = action_to_play_dict(n)
 
-        self.ill_counter = 0
-        
         self.mcts = MCTS(p=1,n_iter=n_iter)
 
     def reset(self, seed=None, options=None):
@@ -108,18 +118,12 @@ class TicTacToeEnv(gym.Env):
 
         self.ep_index += 1
         play = self.action_to_play[action]
-        illegal = False
 
-        if self.ttt.get_mark_at_position(play) != 0: illegal = True
+        if self.ttt.get_mark_at_position(play) != 0: return ValueError("Illegal move")
 
         self.ttt.set_mark(play, self.curr_player)
 
         result = has_won(self.ttt, self.win_list)
-
-        # Return immediately if illegal move
-        if illegal:
-            reward = -0.2
-            return self.ttt.board.flatten(), reward, True, {}
 
         if result != 0:
             self.ep_index = self.ep_len
@@ -133,8 +137,8 @@ class TicTacToeEnv(gym.Env):
             return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
-        self.ttt.set_mark(self.random_move(), 1)
-        #self.ttt.set_mark(self.mcts.search(self.ttt), 1)
+        #self.ttt.set_mark(self.random_move(), 1)
+        self.ttt.set_mark(self.mcts.search(self.ttt), 1)
         return self.ttt.board
     
     def random_move(self):

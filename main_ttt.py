@@ -1,11 +1,13 @@
 import gym 
 import network_ttt
 from network_ttt import Agent
-from gym_ttt import TicTacToeEnv
+from gym_ttt import TicTacToeEnv, has_won_np, create_win_list
 import numpy as np
 import matplotlib.pyplot as plt
 import torch as t
 from mcts_ttt import MCTS
+
+win_list = create_win_list(3)
 
 def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
     fig = plt.figure()
@@ -32,16 +34,22 @@ def plot_learning_curve(x, scores, epsilons, filename, ylabel="Score"):
 
     plt.savefig(filename)
 
+
+
+
+
     
 
 def main():
 
-    n_iter = 200
+    n_iter = 150
     n = 3 
     env = TicTacToeEnv(n = n, n_iter = n_iter)
 
     agent = Agent(gamma = 0.99, epsilon = 1, batch_size=512, n_actions=n*n, 
-                  eps_dec = 3e-5, eps_end=0.01, input_dims=[n*n], lr=0.001)
+                  eps_dec = 5e-5, eps_end=0.1, input_dims=[n*n], lr=1e-4, 
+                  fc1_dims = 512, fc2_dims = 512, istraining=True)
+    
     scores, eps_history, losses = [], [], []
     n_games = 40000
     debug = 40002
@@ -52,14 +60,10 @@ def main():
         observation = env.reset()
 
         if i % 2000 == 0:
-            n_iter += 100
-            print("n_iter: SUSSY BAKA", n_iter)
-            #env.mcts = MCTS(p=1,n_iter=n_iter)
-            #Save the model
-            t.save(agent.Q_eval.state_dict(), f'ttt_model_MCTStrain10{i}.pt')
+            print(f"Saved model as 'ttt_model_randomtrain_512fc_dropout0.5{i}.pt'", n_iter)
+            t.save(agent.Q_eval.state_dict(), f'ttt_model_randomtrain_512fc_dropout0.5{i}.pt')
 
         while not done:
-            #print("episode: ", i)
 
             if i >= debug:
                 print("observation:")
@@ -74,29 +78,20 @@ def main():
 
             observation_ , reward, done, info = env.step(action, i)
 
-            #if done:
-            #    print("done: ", done)
-            #    print(action)
-            #    print(reward)
-            #    print(observation.reshape(3,3))
-            #    print(observation_.reshape(3,3))
-
             if i >= debug:
                 print("observation_: ")
                 print(observation_.reshape(3,3))
 
-            #print("reward: ", reward)
-
-            #print(score)
-
             score += reward
             agent.store_transition(observation, action, reward, observation_, int(done))
             loss = agent.learn()
-            #set current state to new state
-            observation = observation_
 
-        
 
+            if has_won_np(observation_.reshape(3,3), win_list):
+                break
+            else:
+                #set current state to new state
+                observation = observation_
 
         scores.append(score)
 
