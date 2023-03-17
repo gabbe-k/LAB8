@@ -29,69 +29,85 @@ acpdict = action_to_play_dict(n)
 
 def deepQVsMCTS(mctsagent, agent1, size=(n,n), verbose=False):
     b = te.Board(size,n)
+    b.turn = 1
     firstRound = True
-    
-    while has_won(b, win_list) == -1:
-        
-        if verbose: print(b)
+    res = -1
+
+    while res == -1:
 
         if firstRound:
             moves = b.possible_moves()
             i = np.random.randint(len(moves))
-            i2 = np.random.randint(len(moves))
             x,y = moves[i]
-            b.set_mark([x,y], 1)
+            b.push([x,y])
             firstRound = False
         else:
             move = mctsagent.search(b)
-            b.set_mark(move, 1)
+            b.push(move)
 
-        if has_won(b, win_list) != -1: return has_won(b, win_list)
+        if has_won(b, win_list) != -1: 
+            res = has_won(b, win_list)
+            break
 
         move_Q = agent1.choose_action(b.board.flatten())
+        b.push(acpdict[move_Q])
 
-        b.set_mark(acpdict[move_Q], 2)
-
-        if has_won(b, win_list) != -1: return has_won(b, win_list)
+        if has_won(b, win_list) != -1: 
+            res = has_won(b, win_list)
+            break
+    
+    if verbose: 
+        print(b)
+        print(res)
+    return res
 
 
 def MCTSvsdeepQ(mctsagent, agent1, size=(n,n), verbose=False):
     b = te.Board(size,n)
+    b.turn = 2
     firstRound = True
-    
-    while has_won(b, win_list) == -1:
-        
-        if verbose: print(b)
+    res = -1
+
+    while res == -1:
 
         if firstRound:
             moves = b.possible_moves()
             i = np.random.randint(len(moves))
             x,y = moves[i]
-            b.set_mark([x,y], 2)
+            b.push([x,y])
             firstRound = False
         else:
             move_Q = agent1.choose_action(b.board.flatten())
-            b.set_mark(acpdict[move_Q], 2)
+            b.push(acpdict[move_Q])
 
-        if has_won(b, win_list) != -1: return has_won(b, win_list)
+        if has_won(b, win_list) != -1: 
+            res = has_won(b, win_list)
+            break
 
         move = mctsagent.search(b)
-        b.set_mark(move, 1)
+        b.push(move)
 
-        if has_won(b, win_list) != -1: return has_won(b, win_list)
+        if has_won(b, win_list) != -1: 
+            res = has_won(b, win_list)
+            break
+    
+    if verbose: 
+        print(b)
+        print(res)
+    return res
 
 
 if __name__ == '__main__':
     #load Q-learned model
     network = network_ttt.DeepQNetwork(lr = 0.001, input_dims = [n*n], fc1_dims= 128, fc2_dims = 128, n_actions = n*n)
-    network.load_state_dict(t.load('ttt_model_MCTStrain0932000.pt'))
+    network.load_state_dict(t.load('ttt_model_MCTStrain1034000.pt'))
     network.eval()
 
     agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=64, 
                   n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001, istraining=False)
     agent.Q_eval = network
 
-    n_iter = 500
+    n_iter = 1000
 
     mcts = MCTS(1,n_iter=n_iter)
 
@@ -99,8 +115,8 @@ if __name__ == '__main__':
     wins = 0
     draws = 0
     for i in range(100):
-      #outcome = deepQVsMCTS(mcts, agent, size=(n,n), verbose=False)
-      outcome = MCTSvsdeepQ(mcts, agent, size=(n,n), verbose=True)
+      outcome = deepQVsMCTS(mcts, agent, size=(n,n), verbose=False)
+      #outcome = MCTSvsdeepQ(mcts, agent, size=(n,n), verbose=True)
       if outcome == 2:
           wins += 1
       elif outcome == 0:

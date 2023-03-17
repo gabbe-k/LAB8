@@ -41,10 +41,10 @@ def main():
     env = TicTacToeEnv(n = n, n_iter = n_iter)
 
     agent = Agent(gamma = 0.99, epsilon = 1, batch_size=512, n_actions=n*n, 
-                  eps_dec = 1e-4, eps_end=0.01, input_dims=[n*n], lr=0.001)
+                  eps_dec = 3e-5, eps_end=0.01, input_dims=[n*n], lr=0.001)
     scores, eps_history, losses = [], [], []
-    n_games = 100000
-    debug = 100002
+    n_games = 40000
+    debug = 40002
 
     for i in range(n_games):
         score = 0 
