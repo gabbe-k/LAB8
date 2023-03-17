@@ -21,6 +21,7 @@ class DeepQNetwork(nn.Module):
         self.fc3 = nn.Linear(self.fc2_dims, self.n_actions)
         self.optimizer = optim.Adam(self.parameters(), lr=self.lr)
         self.loss = nn.MSELoss()
+        self.dropout = nn.Dropout(0.1)
         self.device = t.device('cuda:0' if t.cuda.is_available() else 'cpu')
         self.lru = nn.LeakyReLU()
         self.to(self.device)

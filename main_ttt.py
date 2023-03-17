@@ -56,7 +56,7 @@ def main():
             print("n_iter: SUSSY BAKA", n_iter)
             #env.mcts = MCTS(p=1,n_iter=n_iter)
             #Save the model
-            t.save(agent.Q_eval.state_dict(), f'ttt_model_MCTStrain09{i}.pt')
+            t.save(agent.Q_eval.state_dict(), f'ttt_model_MCTStrain10{i}.pt')
 
         while not done:
             #print("episode: ", i)
