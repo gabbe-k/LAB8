@@ -10,18 +10,8 @@ import tictactoe as te
 from gym_ttt import *
 from mcts_ttt import *
 
-def has_won(board, win_list):
-    b_flat = board.board.flatten()
-    for w in win_list:
-        elems = b_flat[w]
-        if all(elems == 1):
-            return 1
-        elif all(elems == 2):
-            return 2
-    if np.count_nonzero(b_flat) == b_flat.size:
-        return 0
-    
-    return -1
+
+
 
 n = 3
 win_list = create_win_list(n)
@@ -45,15 +35,15 @@ def deepQVsMCTS(mctsagent, agent1, size=(n,n), verbose=False):
             move = mctsagent.search(b)
             b.push(move)
 
-        if has_won(b, win_list) != -1: 
-            res = has_won(b, win_list)
+        if has_won(b) != -1: 
+            res = has_won(b)
             break
 
         move_Q = agent1.choose_action(b.board.flatten())
         b.push(acpdict[move_Q])
 
-        if has_won(b, win_list) != -1: 
-            res = has_won(b, win_list)
+        if has_won(b) != -1: 
+            res = has_won(b)
             break
     
     if verbose: 
@@ -74,15 +64,15 @@ def deepQVsRANDOM(agent1, size=(n,n), verbose=False):
         x,y = moves[i]
         b.push([x,y])
 
-        if has_won(b, win_list) != -1: 
-            res = has_won(b, win_list)
+        if has_won(b) != -1: 
+            res = has_won(b)
             break
 
         move_Q = agent1.choose_action(b.board.flatten())
         b.push(acpdict[move_Q])
 
-        if has_won(b, win_list) != -1: 
-            res = has_won(b, win_list)
+        if has_won(b) != -1: 
+            res = has_won(b)
             break
     
     if verbose: 
@@ -94,17 +84,17 @@ def deepQVsRANDOM(agent1, size=(n,n), verbose=False):
 if __name__ == '__main__':
     #load Q-learned model
     network = network_ttt.DeepQNetwork(lr = 0.001, input_dims = [n*n], fc1_dims= 256, fc2_dims = 256, n_actions = n*n)
-    #network.load_state_dict(t.load('ttt_model_randomtrain_34000.pt'))
     
-    #59% draw rate
-    network.load_state_dict(t.load('ttt_model_randomtrain_512fc_dropout0.536000.pt'))
+    
+    #59% draw rate, 16% against mcst 150 iter
+    network.load_state_dict(t.load('models/ONE.pt'))
     network.eval()
 
     agent = Agent(gamma = 0.99, epsilon = 1.0, batch_size=512, 
                   n_actions=n*n, eps_end=0.01, input_dims=[n*n], lr=0.001, istraining=False)
     agent.Q_eval = network
 
-    n_iter = 150
+    n_iter = 1000
 
     mcts = MCTS(1,n_iter=n_iter)
 
@@ -112,8 +102,8 @@ if __name__ == '__main__':
     wins = 0
     draws = 0
     for i in range(100):
-      outcome = deepQVsMCTS(mcts, agent, size=(n,n), verbose=False)
-      #outcome = deepQVsRANDOM(agent, size=(n,n), verbose=False)
+      #outcome = deepQVsMCTS(mcts, agent, size=(n,n), verbose=True)
+      outcome = deepQVsRANDOM(agent, size=(n,n), verbose=True)
       if outcome == 2:
           wins += 1
       elif outcome == 0:

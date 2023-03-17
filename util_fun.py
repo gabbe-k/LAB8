@@ -1,4 +1,15 @@
 import numpy as np 
+import tictactoe as te
+
+
+
+
+def action_to_play_dict(n):
+    d = {}
+    for i in range(n*n):
+        d[i] = (i//n, i%n)
+    return d
+
 
 
 
@@ -26,11 +37,22 @@ def create_win_list(n):
 
 
 
-def has_won_np(board, win_list):
+def has_won_np(board):
 
   b_flat = board.flatten()
 
-  for w in win_list:
+  win = [
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7]
+  ]
+
+  for w in win:
     elems = b_flat[w]
 
     if all(elems == 1):
@@ -107,3 +129,14 @@ def hashmul_np(npboard):
   coeff = np.arange(len(b))
   #pairwise multiply and sum
   return np.sum(np.multiply(b, coeff))
+
+if __name__ == "__main__":
+   
+  #test the has won function
+  board = te.Board((3,3),3)
+  board.set_mark((0,0),2)
+  board.set_mark((0,1),2)
+  board.set_mark((0,2),2)
+  
+  print(has_won(board))
+

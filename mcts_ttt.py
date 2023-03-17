@@ -81,13 +81,10 @@ class MCTS:
       board = board.copy()
       p = self.p
       
-      status = -1
-      while status == -1:
-          possible_moves = list(board.possible_moves())
-          a, b = random.choice(possible_moves)
-          board.set_mark([a, b], p)
-          p = 3 - p
-          status = has_won(board)
+      while (status := has_won(board)) == -1:
+                a, b = random.choice(list(board.possible_moves()))
+                board.set_mark([a, b], p)
+                p = 3 - p
 
       return 1 if status == self.p else 0 if status == 0 else -1
 
@@ -158,7 +155,7 @@ def randomGame(size=(n,n), iter=1000, verbose=False):
     move = mcts.search(b)
     b.push(move)
 
-    print(b)
+    #print(b)
 
     if has_won(b) != -1:
       return has_won(b)
@@ -177,7 +174,6 @@ def main():
   b.push([1,1])
   mcts = MCTS(p=2, n_iter=1000)
   move = mcts.search(b)
-  print(move)
 
 
 #main loop

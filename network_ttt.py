@@ -31,7 +31,7 @@ class DeepQNetwork(nn.Module):
         layer1 = self.lru(self.fc1(state))
         layer2 = self.lru(self.fc2(layer1))
         if self.dropout:
-            layer2 = nn.Dropout(0.03)(layer2)
+            layer2 = nn.Dropout(0.05)(layer2)
             actions = self.fc3(layer2)
         else:
             actions = self.fc3(layer2)
@@ -44,7 +44,7 @@ class DeepQNetwork(nn.Module):
 class Agent():
     def __init__(self, gamma, epsilon, lr, input_dims, batch_size, 
                  n_actions, max_mem_size=100000, eps_end=0.01, eps_dec=5e-4, 
-                 fc1_dims = 256, fc2_dims = 256, istraining=True):
+                 fc1_dims = 256, fc2_dims = 256, istraining=True, dropout=False):
         
         self.gamma = gamma
         self.epsilon = epsilon
@@ -58,7 +58,7 @@ class Agent():
         self.eps_dec = eps_dec
         self.mem_cntr = 0
         self.Q_eval = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, 
-                                   fc1_dims=fc1_dims, fc2_dims=fc2_dims, dropout=False)
+                                   fc1_dims=fc1_dims, fc2_dims=fc2_dims, dropout=dropout)
         self.Q_target = DeepQNetwork(self.lr, n_actions=n_actions, input_dims=input_dims, 
                                      fc1_dims=fc1_dims, fc2_dims=fc2_dims, dropout=False)
         
@@ -92,16 +92,13 @@ class Agent():
         if np.random.random() > self.epsilon or self.istraining == False:
             # pass observation through network
             actions = self.Q_eval.forward(state)
-
-            with t.no_grad():
-                actions = self.Q_eval(state)
-                
-                mask = t.zeros_like(actions)
-                mask[0, legal_positions] = 1.0
-                masked_actions = actions - (1 - mask) * 1e9  # Mask illegal actions with a large negative number
-                action = t.argmax(masked_actions).item()
-                maxval = t.max(masked_actions)
-                        
+            
+            mask = t.zeros_like(actions)
+            mask[0, legal_positions] = 1.0
+            masked_actions = actions - (1 - mask) * 1e9  # Mask illegal actions with a large negative number
+            action = t.argmax(masked_actions).item()
+            maxval = t.max(masked_actions)
+            
             #unit test 
             if action not in legal_positions or maxval != max(actions[0][legal_positions]):
                 

@@ -7,13 +7,18 @@ from util_fun import *
 
 
 
-def action_to_play_dict(n):
-    d = {}
-    for i in range(n*n):
-        d[i] = (i//n, i%n)
-    return d
+def has_won_train(board):
+    return convertresult(has_won(board))
 
-
+def convertresult(result):
+    if result == 1:
+        return -1
+    elif result == 2:
+        return 1
+    elif result == 0:
+        return 0.5
+    else:
+        return 0
 
 
 class TicTacToeEnv(gym.Env):
@@ -69,7 +74,7 @@ class TicTacToeEnv(gym.Env):
 
         self.ttt.set_mark(play, self.curr_player)
 
-        result = has_won(self.ttt, self.win_list)
+        result = has_won_train(self.ttt)
 
         if result != 0:
             self.ep_index = self.ep_len
@@ -79,12 +84,12 @@ class TicTacToeEnv(gym.Env):
         else:
             self.ep_index += 1
             obs = self._next_observation()
-            reward = has_won(self.ttt, self.win_list)
+            reward = has_won_train(self.ttt)
             return obs.flatten(), reward, False, {}
     
     def _next_observation(self):
-        #self.ttt.set_mark(self.random_move(), 1)
-        self.ttt.set_mark(self.mcts.search(self.ttt), 1)
+        self.ttt.set_mark(self.random_move(), 1)
+        #self.ttt.set_mark(self.mcts.search(self.ttt), 1)
         return self.ttt.board
     
     def random_move(self):

@@ -50,9 +50,9 @@ def main():
     env = TicTacToeEnv(n = n, n_iter = n_iter)
 
     agent = Agent(gamma = 0.99, epsilon = 1, batch_size=512, n_actions=n*n, 
-                  eps_dec = 5e-5, eps_end=0.1, input_dims=[n*n], lr=1e-4, 
-                  fc1_dims = 512, fc2_dims = 512, istraining=True)
-    
+                  eps_dec = 3e-5, eps_end=0.01, input_dims=[n*n], lr=0.000001, 
+                  fc1_dims=512, fc2_dims=512, dropout=True)
+
     scores, eps_history, losses = [], [], []
     n_games = 40000
     debug = 40002
@@ -62,39 +62,25 @@ def main():
         done = False
         observation = env.reset()
 
-        if i % 2000 == 0:
+        if i % 5000 == 0:
             print(f"Saved model as 'ttt_model_randomtrain_512fc_dropout0.5{i}.pt'", n_iter)
             t.save(agent.Q_eval.state_dict(), f'ttt_model_randomtrain_512fc_dropout0.5{i}.pt')
 
         while not done:
-
-            if i >= debug:
-                print("observation:")
-                print(observation.reshape(3,3))
                 
             # discrete observation between 0 and 8
             action = agent.choose_action(observation)
 
-
-            if i >= debug:
-                print("action: ", action)
-
-            observation_ , reward, done, info = env.step(action, i)
-
-            if i >= debug:
-                print("observation_: ")
-                print(observation_.reshape(3,3))
+            observation_ , reward, done, _ = env.step(action, i)
 
             score += reward
             agent.store_transition(observation, action, reward, observation_, int(done))
             loss = agent.learn()
 
-
-            if has_won_np(observation_.reshape(3,3), win_list):
-                break
-            else:
-                #set current state to new state
-                observation = observation_
+            if has_won_np(observation_):
+                done = True
+            
+            observation = observation_
 
         scores.append(score)
 
